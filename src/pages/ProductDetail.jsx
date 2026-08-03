@@ -1,0 +1,153 @@
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { Heart, Minus, Plus, ShoppingCart } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+
+import {
+  onGetProductDetails,
+  onAddToWishlist,
+  onAddToCart,
+  onRemoveFromWishlist,
+  onRemoveFromCart,
+} from "../store/actions";
+
+const dmSans = { fontFamily: "'DM Sans', sans-serif" };
+const inter = { fontFamily: "'Inter', sans-serif" };
+
+const ProductDetails = () => {
+  const { id } = useParams();
+
+  const dispatch = useAppDispatch();
+
+  const { currentProduct } = useAppSelector((state) => state.shoppingReducer);
+  const { wishlist, cart } = useAppSelector((state) => state.userReducer);
+
+  const [currentUnit, setCurrentUnit] = useState(0);
+
+  const { _id, banner, price, name, desc, type } = currentProduct;
+
+  useEffect(() => {
+    dispatch(onGetProductDetails(id));
+  }, [id]);
+
+  useEffect(() => {
+    if (Array.isArray(cart) && cart.length) {
+      const exist = cart.filter(({ product }) => product._id == _id);
+      if (exist.length) {
+        setCurrentUnit(exist[0].unit);
+      }
+    }
+  }, [currentProduct]);
+
+  const addCart = () => {
+    const newUnit = currentUnit + 1;
+
+    setCurrentUnit(newUnit);
+    setTimeout(() => {
+      dispatch(onAddToCart({ _id, qty: newUnit }));
+    }, 0);
+  };
+
+  const removeCart = () => {
+    if (currentUnit > 0) {
+      const newUnit = currentUnit - 1;
+      setCurrentUnit(newUnit);
+      setTimeout(() => {
+        if (newUnit > 0) {
+          dispatch(onAddToCart({ _id, qty: newUnit }));
+        } else {
+          dispatch(onRemoveFromCart(_id));
+        }
+      }, 0);
+    }
+  };
+
+  const isWishlisted =
+    Array.isArray(wishlist) && wishlist.some((item) => item._id == _id);
+  const cartEntry =
+    Array.isArray(cart) && cart.find(({ product }) => product._id == _id);
+
+  if (!currentProduct) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={inter}>
+        Cargando...
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#F5F5F3] px-5 sm:px-8 lg:px-10 py-10">
+      <div className="max-w-5xl mx-auto bg-white rounded-lg overflow-hidden grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="bg-black/5">
+          <img src={banner} alt={name} className="w-full h-full object-cover" />
+        </div>
+
+        <div className="p-6 sm:p-8 flex flex-col gap-4">
+          <span className="text-black/50 text-sm" style={inter}>
+            Categoría → <span className="text-black capitalize">{type}</span>
+          </span>
+
+          <h1 className="text-3xl sm:text-4xl" style={{ ...dmSans, letterSpacing: "-0.03em" }}>
+            {name}
+          </h1>
+
+          <p className="text-2xl font-medium" style={inter}>
+            ${price?.toLocaleString()}
+          </p>
+
+          <p className="text-black/70" style={inter}>
+            {desc}
+          </p>
+
+          <p className="text-black/40 text-sm" style={inter}>
+            *El vehículo estará disponible a través del canal de entrega estándar.
+          </p>
+
+          <div className="flex items-center gap-4 mt-4">
+            {cartEntry ? (
+              <div className="flex items-center gap-3">
+                <button
+                  className="w-10 h-10 flex items-center justify-center rounded-md bg-amber-400"
+                  onClick={removeCart}
+                >
+                  <Minus size={18} />
+                </button>
+                <span className="text-xl w-6 text-center">{currentUnit}</span>
+                <button
+                  className="w-10 h-10 flex items-center justify-center rounded-md bg-amber-400"
+                  onClick={addCart}
+                >
+                  <Plus size={18} />
+                </button>
+              </div>
+            ) : (
+              <button
+                className="flex items-center gap-2 px-5 py-3 rounded-md bg-amber-400 text-black"
+                style={inter}
+                onClick={addCart}
+              >
+                Agregar <ShoppingCart size={18} />
+              </button>
+            )}
+
+            <button
+              className={`flex items-center gap-2 px-5 py-3 rounded-md text-white ${
+                isWishlisted ? "bg-gray-400" : "bg-pink-500"
+              }`}
+              style={inter}
+              onClick={() =>
+                dispatch(
+                  isWishlisted ? onRemoveFromWishlist(_id) : onAddToWishlist(_id)
+                )
+              }
+            >
+              {isWishlisted ? "Quitar" : "Wishlist"} <Heart size={18} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export { ProductDetails };
