@@ -1,78 +1,68 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
-  Search,
-  ShoppingBag,
-  CornerUpLeft,
   Menu,
   X,
   ArrowUpRight,
-  FlaskConical,
-  Leaf,
-  Droplets,
-  Sun,
+  ShieldCheck,
+  BadgeCheck,
+  Wrench,
+  Gauge,
 } from "lucide-react";
-
-// const BG_IMAGE =
-//   "https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260624_110248_b62f758d-f68c-4045-a7b4-91771d6d0a0f.png&w=1280&q=85";
-// const AVATAR_IMAGE =
-//   "https://polo-pecan-73837341.figma.site/_assets/v11/ca8093996e970200cbcf8bde8744175e52da5a79.png";
-// const CAPSULE_IMAGE =
-//   "https://polo-pecan-73837341.figma.site/_assets/v11/6a7de4fbe9c9e2315040607320a9ff5e93117bf4.png";
-// const PRODUCT_IMAGE =
-//   "https://polo-pecan-73837341.figma.site/_assets/v11/50ad042b3cd48a2e120ea3ba17c8cfeaf3cc334c.png";
-// const PANEL1_DECORATION =
-//   "https://polo-pecan-73837341.figma.site/_assets/v11/6736cbe6e26afa2cd7c04a91892a79f7640785b5.png";
-// const PANEL3_PRODUCT =
-//   "https://polo-pecan-73837341.figma.site/_assets/v11/30e8f38d1f993c357a3be2721557fc899d5640fc.png";
-
 
 const BG_IMAGE =
   "https://img.magnific.com/vector-gratis/fondo-brillo-negro-realista_23-2150060296.jpg?semt=ais_hybrid&w=740&q=80";
-const AVATAR_IMAGE =
-  "https://polo-pecan-73837341.figma.site/_assets/v11/ca8093996e970200cbcf8bde8744175e52da5a79.png";
-const CAPSULE_IMAGE =
-  "https://polo-pecan-73837341.figma.site/_assets/v11/6a7de4fbe9c9e2315040607320a9ff5e93117bf4.png";
 const PRODUCT_IMAGE =
   "https://www.freeiconspng.com/uploads/red-sports-car-png-1.png";
 const PANEL1_DECORATION =
   "https://marketing4ecommerce.co/wp-content/uploads/2021/05/VendeTuNave.jpg";
-const PANEL3_PRODUCT =
-  "https://polo-pecan-73837341.figma.site/_assets/v11/30e8f38d1f993c357a3be2721557fc899d5640fc.png";
 
-const NAV_LINKS = ["About", "Products", "Promotions", "Contact"];
+const NAV_LINKS = [
+  { label: "Vehículos", to: "/vehicles" },
+  { label: "Beneficios", href: "#beneficios" },
+  { label: "Mi cuenta", to: "/login" },
+];
 
 const CAROUSEL_CARDS = [
   {
-    icon: FlaskConical,
-    bg: "bg-black",
-    text: "Vehiculo 1",
+    icon: ShieldCheck,
+    bg: "bg-neutral-900",
+    text: "Garantía mecánica de 12 meses en cada vehículo.",
   },
   {
-    icon: Leaf,
+    icon: BadgeCheck,
     bg: "bg-emerald-800",
-    text: "Vehiculo 2",
+    text: "Peritaje certificado de 150 puntos antes de la entrega.",
   },
   {
-    icon: Droplets,
+    icon: Wrench,
     bg: "bg-cyan-800",
-    text: "Vehiculo 3",
+    text: "Primer mantenimiento incluido en nuestros talleres.",
   },
   {
-    icon: Sun,
+    icon: Gauge,
     bg: "bg-amber-700",
-    text: "Vehiculo 3",
+    text: "Historial de kilometraje verificado y sin reportes.",
   },
 ];
+
+const CAROUSEL_INTERVAL = 5000;
 
 const dmSans = { fontFamily: "'DM Sans', sans-serif" };
 const inter = { fontFamily: "'Inter', sans-serif" };
 
+// Shared focus treatment so keyboard users can always see where they are.
+const focusRing =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm";
+const focusRingDark =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 rounded-sm";
+
 const Word = ({ children, delay, dim, className = "" }) => (
-  <span className={`inline-block overflow-hidden ${className}`}>
+  <span className={`inline-block overflow-hidden align-bottom ${className}`}>
     <span
-      className={`inline-block animate-word-reveal ${delay} ${dim ? "text-white/45" : "text-white"
-        }`}
+      className={`inline-block animate-word-reveal ${delay} ${
+        dim ? "text-white/50" : "text-white"
+      }`}
     >
       {children}
     </span>
@@ -82,263 +72,334 @@ const Word = ({ children, delay, dim, className = "" }) => (
 const Home = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeCard, setActiveCard] = useState(0);
+  const [carouselPaused, setCarouselPaused] = useState(false);
+  const menuButtonRef = useRef(null);
+  const wasMenuOpen = useRef(false);
 
+  // Autoplay pauses on hover/focus so the copy stays readable.
   useEffect(() => {
+    if (carouselPaused) return;
     const interval = setInterval(() => {
       setActiveCard((prev) => (prev + 1) % CAROUSEL_CARDS.length);
-    }, 3500);
+    }, CAROUSEL_INTERVAL);
     return () => clearInterval(interval);
-  }, []);
+  }, [carouselPaused]);
 
-  const headlineSize =
-    "text-[48px] leading-[50px] sm:text-[80px] sm:leading-[72px] md:text-[110px] md:leading-[95px] lg:text-[130px] lg:leading-[110px] xl:text-[155px] xl:leading-[125px]";
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+
+  // Send focus back to the toggle once the overlay closes.
+  useEffect(() => {
+    if (menuOpen) {
+      wasMenuOpen.current = true;
+      return;
+    }
+    if (wasMenuOpen.current) {
+      wasMenuOpen.current = false;
+      menuButtonRef.current?.focus();
+    }
+  }, [menuOpen]);
+
+  // Escape closes the overlay and the page behind it stops scrolling while open.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") closeMenu();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [menuOpen, closeMenu]);
+
+  const renderNavLink = (link, className, onClick) =>
+    link.to ? (
+      <Link key={link.label} to={link.to} className={className} onClick={onClick}>
+        {link.label}
+      </Link>
+    ) : (
+      <a key={link.label} href={link.href} className={className} onClick={onClick}>
+        {link.label}
+      </a>
+    );
 
   return (
-    <div
-      className="min-h-screen flex flex-col relative overflow-hidden"
-      style={{
-        backgroundImage: `url(${BG_IMAGE})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
+    <div className="min-h-screen flex flex-col relative overflow-hidden bg-neutral-950">
+      {/* Background image + scrim: the scrim keeps the white copy legible
+          whatever the photo behind it is doing. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${BG_IMAGE})` }}
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 z-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70"
+      />
+
+      <a
+        href="#contenido"
+        className={`sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-white focus:text-black focus:px-4 focus:py-2 ${focusRingDark}`}
+        style={inter}
+      >
+        Saltar al contenido
+      </a>
+
       {/* Navbar */}
-      <nav className="animate-fade-in flex items-center justify-between px-5 sm:px-8 lg:px-10 py-4 lg:py-5 relative z-20">
-        <span
-          className="animate-slide-left delay-200 text-white text-[30px]"
-          style={{ ...dmSans, fontWeight: 500, letterSpacing: "-0.05em" }}
+      <header className="animate-fade-in relative z-20">
+        <nav
+          aria-label="Principal"
+          className="flex items-center justify-between px-5 sm:px-8 lg:px-10 py-4 lg:py-5"
         >
-          AutosEnfasis-I
-        </span>
+          <Link
+            to="/"
+            className={`animate-slide-left delay-200 text-white text-[26px] sm:text-[30px] ${focusRing}`}
+            style={{ ...dmSans, fontWeight: 500, letterSpacing: "-0.05em" }}
+          >
+            AutosEnfasis-I
+          </Link>
 
-        <div
-          className="animate-fade-in delay-400 hidden lg:flex items-center gap-10 text-white/90 text-lg"
-          style={{ ...dmSans, fontWeight: 500 }}
-        >
-          {NAV_LINKS.map((link) =>
-            link === "Products" ? (
-              <Link key={link} to="/vehicles" className="hover:text-white transition-colors">
-                {link}
-              </Link>
-            ) : (
-              <a key={link} href="#" className="hover:text-white transition-colors">
-                {link}
-              </a>
-            )
-          )}
-        </div>
+          <div
+            className="animate-fade-in delay-400 hidden lg:flex items-center gap-10 text-white/90 text-lg"
+            style={{ ...dmSans, fontWeight: 500 }}
+          >
+            {NAV_LINKS.map((link) =>
+              renderNavLink(link, `hover:text-white transition-colors ${focusRing}`)
+            )}
+          </div>
 
-        {/* <div className="animate-slide-right delay-300 flex items-center gap-4 sm:gap-5">
-          <button aria-label="Search" className="text-white">
-            <Search size={20} strokeWidth={1.5} />
-          </button>
-          <button aria-label="Cart" className="text-white">
-            <ShoppingBag size={20} strokeWidth={1.5} />
-          </button>
-          <button aria-label="Returns" className="text-white">
-            <CornerUpLeft size={20} strokeWidth={1.5} />
-          </button>
-          <img
-            src={AVATAR_IMAGE}
-            alt="Account"
-            className="w-8 h-8 lg:w-10 lg:h-10 rounded-full object-cover"
-          />
           <button
-            aria-label="Toggle menu"
-            className="md:hidden text-white"
+            ref={menuButtonRef}
+            type="button"
+            className={`lg:hidden text-white p-2 -mr-2 ${focusRing}`}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
+            aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
             onClick={() => setMenuOpen((open) => !open)}
           >
             {menuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
-        </div> */}
-      </nav>
+        </nav>
+      </header>
 
       {/* Mobile overlay menu */}
       {menuOpen && (
-        <div className="fixed inset-0 bg-black/90 z-30 flex flex-col items-center justify-center gap-8">
+        <div
+          id="mobile-menu"
+          className="fixed inset-0 bg-black/95 z-40 flex flex-col items-center justify-center gap-8"
+        >
           <button
-            aria-label="Close menu"
-            className="absolute top-5 right-5 text-white"
-            onClick={() => setMenuOpen(false)}
+            type="button"
+            aria-label="Cerrar menú"
+            className={`absolute top-4 right-5 text-white p-2 ${focusRing}`}
+            onClick={closeMenu}
           >
             <X size={28} />
           </button>
-          {NAV_LINKS.map((link) =>
-            link === "Products" ? (
-              <Link
-                key={link}
-                to="/vehicles"
-                className="text-2xl text-white"
-                style={dmSans}
-                onClick={() => setMenuOpen(false)}
-              >
-                {link}
-              </Link>
-            ) : (
-              <a
-                key={link}
-                href="#"
-                className="text-2xl text-white"
-                style={dmSans}
-                onClick={() => setMenuOpen(false)}
-              >
-                {link}
-              </a>
-            )
-          )}
+          <nav
+            aria-label="Menú móvil"
+            className="flex flex-col items-center gap-8"
+            style={dmSans}
+          >
+            {NAV_LINKS.map((link) =>
+              renderNavLink(link, `text-2xl text-white ${focusRing}`, closeMenu)
+            )}
+          </nav>
         </div>
       )}
 
       {/* Hero content */}
-      <section className="flex-1 flex flex-col justify-center px-5 sm:px-8 lg:px-10 relative z-20">
-        <h1 className={headlineSize} style={{ ...dmSans, fontWeight: 400, letterSpacing: "-0.05em" }}>
-          <div>
-            <Word delay="delay-300">Adquirir</Word>{" "}
-            <Word delay="delay-400">Tu</Word>{" "}
-            <Word delay="delay-500" dim>Vehículo</Word>
-          </div>
-          <div>
-            <Word delay="delay-600" dim>De</Word>{" "}
-            <Word delay="delay-800">Confianza</Word>
-          </div>
-          <div>
-            <img
-              src={CAPSULE_IMAGE}
-              alt=""
-              className="hidden sm:inline-block align-middle ml-2 lg:ml-4 w-auto animate-scale-in delay-1000"
-              style={{ height: "clamp(60px, 10vw, 160px)" }}
-            />
-          </div>
-        </h1>
-
-        <div className="animate-fade-up delay-600 mt-8 sm:mt-12 lg:mt-[75px] flex flex-col sm:flex-row gap-5 sm:gap-8 lg:gap-[50px]">
-          <Link
-            to="/vehicles"
-            className="bg-black text-white rounded-md w-full sm:w-[240px] md:w-[280px] lg:w-[310px] h-14 sm:h-16 lg:h-[72px] flex items-center justify-center gap-2 text-base sm:text-xl lg:text-2xl"
-            style={{ ...inter, fontWeight: 500, letterSpacing: "-0.03em" }}
-          >
-            Explore Now
-            <ArrowUpRight size={22} />
-          </Link>
-          <p
-            className="text-white max-w-[310px] text-sm sm:text-base lg:text-lg"
-            style={{ ...inter, fontWeight: 400, lineHeight: 1.45, letterSpacing: "-0.03em" }}
-          >
-            Descubre el vehículo a tu medida.
-          </p>
-        </div>
-      </section>
-
-      {/* Mobile/tablet product image */}
-      <div className="lg:hidden relative z-10">
-        <img
-          src={PRODUCT_IMAGE}
-          alt="AutosEnfasis-I product"
-          className="animate-scale-in delay-800 w-[180%] sm:w-[151%] max-w-[1296px] object-contain mx-auto drop-shadow-2xl"
-          style={{ marginBottom: "-180px" }}
-        />
-      </div>
-
-      {/* Bottom 3-panel grid */}
-      <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_2fr] relative z-10">
-        {/* Panel 1 */}
-        <div className="animate-fade-up delay-900 bg-[#ECEDEC] relative overflow-hidden p-8 sm:p-10 lg:p-12 min-h-[280px] flex flex-col justify-between">
-          <p
-            className="max-w-[350px] text-2xl sm:text-[28px] lg:text-[35px] leading-[1.1]"
+      <main id="contenido" className="flex-1 flex flex-col relative z-20">
+        <section className="flex-1 flex flex-col justify-center px-5 sm:px-8 lg:px-10 py-10">
+          <h1
+            className="text-[clamp(2.75rem,10vw,9.5rem)] leading-[0.92]"
             style={{ ...dmSans, fontWeight: 400, letterSpacing: "-0.05em" }}
           >
-            ¡Realiza el proceso de contratación hoy!
-          </p>
-          <a
-            href="#"
-            className="underline text-base lg:text-lg mt-6 relative z-10 w-fit"
-            style={{ ...inter, fontWeight: 400, letterSpacing: "-0.03em" }}
+            <span className="block">
+              <Word delay="delay-300">Adquiere</Word>{" "}
+              <Word delay="delay-400">tu</Word>{" "}
+              <Word delay="delay-500" dim>
+                vehículo
+              </Word>
+            </span>
+            <span className="block">
+              <Word delay="delay-600" dim>
+                de
+              </Word>{" "}
+              <Word delay="delay-800">confianza</Word>
+            </span>
+          </h1>
+
+          <p
+            className="animate-fade-up delay-600 mt-6 max-w-[46ch] text-white/70 text-base sm:text-lg lg:text-xl"
+            style={{ ...inter, lineHeight: 1.5, letterSpacing: "-0.01em" }}
           >
-            Personal Assessment
-          </a>
+            Vehículos certificados, con historial verificado y garantía incluida.
+            Encuentra el que se ajusta a tu presupuesto.
+          </p>
+
+          <div className="animate-fade-up delay-800 mt-10 lg:mt-14 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-6">
+            <Link
+              to="/vehicles"
+              className={`bg-white text-black hover:bg-white/90 transition-colors rounded-md w-full sm:w-auto sm:min-w-[260px] px-8 h-14 lg:h-16 flex items-center justify-center gap-2 text-lg lg:text-xl ${focusRing}`}
+              style={{ ...inter, fontWeight: 500, letterSpacing: "-0.03em" }}
+            >
+              Ver vehículos
+              <ArrowUpRight size={22} aria-hidden="true" />
+            </Link>
+            <Link
+              to="/login"
+              className={`border border-white/30 text-white hover:bg-white/10 transition-colors rounded-md w-full sm:w-auto sm:min-w-[200px] px-8 h-14 lg:h-16 flex items-center justify-center text-lg lg:text-xl ${focusRing}`}
+              style={{ ...inter, fontWeight: 500, letterSpacing: "-0.03em" }}
+            >
+              Crear cuenta
+            </Link>
+          </div>
+        </section>
+
+        {/* Mobile/tablet product image */}
+        <div className="lg:hidden relative z-10 px-5 -mb-8">
           <img
-            src={PANEL1_DECORATION}
+            src={PRODUCT_IMAGE}
             alt=""
-            className="absolute right-0 bottom-0 h-full object-contain"
-            style={{ mixBlendMode: "multiply" }}
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+            className="animate-scale-in delay-800 w-full max-w-[560px] object-contain mx-auto drop-shadow-2xl"
           />
         </div>
 
-        {/* Panel 2 */}
-        <div className="animate-fade-up delay-1000 bg-[#FEFDF9] p-8 sm:p-10 lg:p-12 min-h-[280px] flex flex-col justify-between">
-          <div className="relative flex-1">
-            {CAROUSEL_CARDS.map((card, i) => {
-              const Icon = card.icon;
-              const isActive = i === activeCard;
-              return (
-                <div
-                  key={i}
-                  className={`flex items-center gap-4 transition-all duration-700 ${isActive
-                    ? "opacity-100 translate-y-0"
-                    : "opacity-0 translate-y-4 absolute inset-0"
-                    }`}
-                >
+        {/* Bottom 3-panel grid */}
+        <section
+          id="beneficios"
+          aria-label="Beneficios"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[2fr_1.2fr_2fr] relative z-10"
+        >
+          {/* Panel 1 — call to action */}
+          <article className="animate-fade-up delay-900 bg-[#ECEDEC] text-black relative overflow-hidden p-8 sm:p-10 lg:p-12 min-h-[280px] flex flex-col justify-between">
+            <img
+              src={PANEL1_DECORATION}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              decoding="async"
+              className="absolute right-0 inset-y-0 w-1/2 object-cover opacity-25 pointer-events-none [mask-image:linear-gradient(to_right,transparent,black_60%)]"
+            />
+            <p
+              className="relative max-w-[22ch] text-2xl sm:text-[28px] lg:text-[35px] leading-[1.1]"
+              style={{ ...dmSans, fontWeight: 400, letterSpacing: "-0.05em" }}
+            >
+              ¡Realiza el proceso de contratación hoy!
+            </p>
+            <Link
+              to="/vehicles"
+              className={`relative inline-flex items-center gap-1 underline underline-offset-4 text-base lg:text-lg mt-6 w-fit hover:text-black/70 transition-colors ${focusRingDark}`}
+              style={{ ...inter, letterSpacing: "-0.03em" }}
+            >
+              Cotiza tu vehículo
+              <ArrowUpRight size={18} aria-hidden="true" />
+            </Link>
+          </article>
+
+          {/* Panel 2 — benefits carousel */}
+          <article
+            className="animate-fade-up delay-1000 bg-[#FEFDF9] text-black p-8 sm:p-10 lg:p-12 min-h-[280px] flex flex-col justify-between"
+            onMouseEnter={() => setCarouselPaused(true)}
+            onMouseLeave={() => setCarouselPaused(false)}
+            onFocus={() => setCarouselPaused(true)}
+            onBlur={() => setCarouselPaused(false)}
+          >
+            <div className="relative flex-1" aria-live="polite">
+              {CAROUSEL_CARDS.map((card, i) => {
+                const Icon = card.icon;
+                const isActive = i === activeCard;
+                return (
                   <div
-                    className={`shrink-0 rounded-full ${card.bg} text-white flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12`}
+                    key={card.text}
+                    aria-hidden={!isActive}
+                    className={`flex items-center gap-4 transition-all duration-700 ${
+                      isActive
+                        ? "opacity-100 translate-y-0"
+                        : "opacity-0 translate-y-4 absolute inset-0 pointer-events-none"
+                    }`}
                   >
-                    <Icon size={20} />
+                    <div
+                      className={`shrink-0 rounded-full ${card.bg} text-white flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12`}
+                    >
+                      <Icon size={20} aria-hidden="true" />
+                    </div>
+                    <p
+                      className="text-black/80 text-sm sm:text-base lg:text-lg"
+                      style={{ ...inter, lineHeight: 1.35, letterSpacing: "-0.02em" }}
+                    >
+                      {card.text}
+                    </p>
                   </div>
-                  <p
-                    className="text-black/80 text-sm sm:text-base lg:text-lg"
-                    style={{ ...inter, fontWeight: 400, lineHeight: 1.2, letterSpacing: "-0.03em" }}
-                  >
-                    {card.text}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-          <div className="flex gap-2 mt-6">
-            {CAROUSEL_CARDS.map((_, i) => (
-              <div
-                key={i}
-                className={`h-0.5 flex-1 rounded-full transition-colors duration-500 ${i === activeCard ? "bg-black" : "bg-black/20"
-                  }`}
-              />
-            ))}
-          </div>
-        </div>
+                );
+              })}
+            </div>
+            <div className="flex gap-2 mt-6">
+              {CAROUSEL_CARDS.map((card, i) => (
+                <button
+                  key={card.text}
+                  type="button"
+                  aria-label={`Ver beneficio ${i + 1} de ${CAROUSEL_CARDS.length}`}
+                  aria-current={i === activeCard}
+                  onClick={() => setActiveCard(i)}
+                  className={`h-6 flex-1 flex items-center ${focusRingDark}`}
+                >
+                  <span
+                    className={`h-0.5 w-full rounded-full transition-colors duration-500 ${
+                      i === activeCard ? "bg-black" : "bg-black/20"
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+          </article>
 
-        {/* Panel 3 */}
-        <div className="animate-fade-up delay-1100 bg-black p-8 sm:p-10 lg:p-12 min-h-[280px] flex items-center gap-6">
-          <img
-            src={PANEL3_PRODUCT}
-            alt="AutosEnfasisI product"
-            className="w-[120px] h-[82px] sm:w-[160px] sm:h-[110px] lg:w-[208px] lg:h-[142px] object-contain shrink-0"
-          />
-          <div>
-            <p
-              className="text-white text-2xl sm:text-3xl lg:text-[35px]"
-              style={{ ...inter, fontWeight: 400, letterSpacing: "-0.05em" }}
-            >
-              +1000
-            </p>
-            <p
-              className="text-white/60 text-sm sm:text-base lg:text-lg"
-              style={{ ...inter, fontWeight: 400, lineHeight: 1.2 }}
-            >
-              Cada persona ya tiene su vehículo
-            </p>
-          </div>
-        </div>
-      </div>
+          {/* Panel 3 — social proof */}
+          <article className="animate-fade-up delay-1100 bg-black p-8 sm:p-10 lg:p-12 min-h-[280px] flex items-center gap-6 md:col-span-2 lg:col-span-1">
+            <img
+              src={PRODUCT_IMAGE}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              decoding="async"
+              className="w-[120px] sm:w-[160px] lg:w-[208px] object-contain shrink-0"
+            />
+            <div>
+              <p
+                className="text-white text-3xl sm:text-4xl lg:text-[44px]"
+                style={{ ...inter, fontWeight: 500, letterSpacing: "-0.05em" }}
+              >
+                +1000
+              </p>
+              <p
+                className="text-white/70 text-sm sm:text-base lg:text-lg mt-1"
+                style={{ ...inter, lineHeight: 1.35 }}
+              >
+                Clientes que ya conducen su vehículo con nosotros
+              </p>
+            </div>
+          </article>
+        </section>
+      </main>
 
       {/* Desktop floating product image */}
       <img
         src={PRODUCT_IMAGE}
-        alt="AutosEnfasisI product"
-        className="animate-scale-in delay-700 hidden lg:block absolute z-0"
+        alt=""
+        aria-hidden="true"
+        decoding="async"
+        className="animate-scale-in delay-700 hidden lg:block absolute z-0 pointer-events-none select-none drop-shadow-2xl"
         style={{
-          width: "clamp(600px, 80vw, 1412px)",
+          width: "clamp(600px, 62vw, 1100px)",
           height: "auto",
-          bottom: "-10%",
-          right: "clamp(-400px, -20vw, -100px)",
+          bottom: "12%",
+          right: "clamp(-260px, -10vw, -80px)",
         }}
       />
     </div>

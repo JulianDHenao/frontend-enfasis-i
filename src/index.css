@@ -52,7 +52,7 @@ code {
 .animate-scale-in {
   animation: scaleIn 1s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
-.animate-word-reveal > span {
+.animate-word-reveal {
   animation: wordReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -66,3 +66,17 @@ code {
 .delay-900 { animation-delay: 0.9s; }
 .delay-1000 { animation-delay: 1s; }
 .delay-1100 { animation-delay: 1.1s; }
+
+/* Respect users who ask the OS for less motion: content still appears,
+   it just arrives without the travel and blur. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,5 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { ShoppingCart, Heart, ListOrdered, Gift } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import {
+  ShoppingCart,
+  Heart,
+  ListOrdered,
+  Gift,
+  Car,
+  Mail,
+  Phone,
+  LogOut,
+} from "lucide-react";
 import {
   onRemoveFromWishlist,
   onViewProfile,
@@ -7,6 +17,7 @@ import {
   onRemoveFromCart,
   onCreateAddress,
   onPlaceOrder,
+  onLogout,
 } from "../store/actions";
 import { AddressComponent } from "../components/Address-comp";
 import { CartItem } from "../components/Cart-comp";
@@ -18,14 +29,29 @@ import { useAppDispatch, useAppSelector } from "../store/hooks";
 const dmSans = { fontFamily: "'DM Sans', sans-serif" };
 const inter = { fontFamily: "'Inter', sans-serif" };
 
+const focusRing =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 rounded-sm";
+
 const TABS = [
-  { key: "cart", label: "Cart", icon: ShoppingCart },
-  { key: "wishlist", label: "Wishlist", icon: Heart },
-  { key: "orders", label: "Orders", icon: ListOrdered },
+  { key: "cart", label: "Carrito", icon: ShoppingCart },
+  { key: "wishlist", label: "Favoritos", icon: Heart },
+  { key: "orders", label: "Pedidos", icon: ListOrdered },
 ];
 
+// The customer record has no name field (see backend Customer.js), so the
+// greeting is built from the local part of the email address.
+const displayNameFrom = (email) => {
+  if (!email) return "";
+  return email
+    .split("@")[0]
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+};
+
 const Profile = () => {
-  const { user, wishlist, cart, orders, address } = useAppSelector(
+  const { user, profile, wishlist, cart, orders, address } = useAppSelector(
     (state) => state.userReducer
   );
   const dispatch = useAppDispatch();
@@ -66,10 +92,23 @@ const Profile = () => {
   };
 
   const emptyState = (message) => (
-    <div className="flex items-center justify-center h-64 text-black/40" style={inter}>
-      {message}
+    <div
+      className="flex flex-col items-center justify-center gap-4 h-64 text-black/40"
+      style={inter}
+    >
+      <p>{message}</p>
+      <Link
+        to="/vehicles"
+        className={`inline-flex items-center gap-2 px-4 py-2 rounded-md border border-black/20 text-black hover:bg-black/5 transition-colors ${focusRing}`}
+      >
+        <Car size={16} aria-hidden="true" />
+        Explorar vehículos
+      </Link>
     </div>
   );
+
+  const displayName = displayNameFrom(profile?.email);
+  const initial = (displayName || profile?.email || "?").charAt(0).toUpperCase();
 
   const totalAmount = Array.isArray(cart)
     ? cart.reduce((sum, { unit, product }) => sum + unit * product.price, 0)
@@ -77,17 +116,77 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-[#F5F5F3] px-5 sm:px-8 lg:px-10 py-8">
+      {/* Account header: who is signed in, plus the way into the catalogue. */}
+      <header className="bg-white rounded-lg p-5 sm:p-6 mb-6 flex flex-col sm:flex-row sm:items-center gap-5">
+        <div
+          className="shrink-0 w-14 h-14 rounded-full bg-black text-white flex items-center justify-center text-xl"
+          aria-hidden="true"
+          style={dmSans}
+        >
+          {initial}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <p className="text-sm text-black/50" style={inter}>
+            Hola de nuevo,
+          </p>
+          <h1
+            className="text-2xl sm:text-3xl truncate"
+            style={{ ...dmSans, letterSpacing: "-0.03em" }}
+          >
+            {displayName || "Tu cuenta"}
+          </h1>
+          <div
+            className="flex flex-wrap gap-x-5 gap-y-1 mt-2 text-sm text-black/60"
+            style={inter}
+          >
+            {profile?.email && (
+              <span className="inline-flex items-center gap-1.5 min-w-0">
+                <Mail size={14} aria-hidden="true" className="shrink-0" />
+                <span className="truncate">{profile.email}</span>
+              </span>
+            )}
+            {profile?.phone && (
+              <span className="inline-flex items-center gap-1.5">
+                <Phone size={14} aria-hidden="true" />
+                {profile.phone}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="shrink-0 flex flex-col sm:flex-row gap-3">
+          <Link
+            to="/vehicles"
+            className={`inline-flex items-center justify-center gap-2 px-5 py-3 rounded-md bg-black text-white hover:bg-black/85 transition-colors ${focusRing}`}
+            style={inter}
+          >
+            <Car size={18} aria-hidden="true" />
+            Adquirir vehículos
+          </Link>
+          <button
+            type="button"
+            onClick={() => dispatch(onLogout())}
+            className={`inline-flex items-center justify-center gap-2 px-5 py-3 rounded-md border border-black/20 text-black/70 hover:text-black hover:bg-black/5 transition-colors ${focusRing}`}
+            style={inter}
+          >
+            <LogOut size={18} aria-hidden="true" />
+            Cerrar sesión
+          </button>
+        </div>
+      </header>
+
       {Array.isArray(address) && address.length ? (
         <div className="mb-8">
           <label className="block mb-2 text-sm text-black/60" style={inter}>
-            Tu dirección de entrega
+            Tu dirección
           </label>
           <AddressComponent address={address} />
         </div>
       ) : (
         <form className="mb-8 bg-white p-5 rounded-lg max-w-3xl" style={inter}>
           <h2 className="text-2xl mb-4" style={dmSans}>
-            Dirección de entrega
+            Dirección
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -143,22 +242,21 @@ const Profile = () => {
       )}
 
       <div className="bg-white rounded-t-lg px-4 sm:px-6 pt-4">
-        <p className="text-2xl sm:text-3xl mb-4" style={{ ...dmSans, color: "#4179CF" }}>
-          Mi cuenta
-        </p>
-        <div className="flex gap-1 border-b border-black/10">
+        <div role="tablist" aria-label="Secciones de la cuenta" className="flex gap-1 border-b border-black/10">
           {TABS.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === key}
               onClick={() => setActiveTab(key)}
-              className={`flex items-center gap-2 px-4 py-3 text-sm border-b-2 transition-colors ${
-                activeTab === key
+              className={`flex items-center gap-2 px-4 py-3 text-sm border-b-2 transition-colors ${focusRing} ${activeTab === key
                   ? "border-black text-black"
-                  : "border-transparent text-black/40"
-              }`}
+                  : "border-transparent text-black/40 hover:text-black/70"
+                }`}
               style={inter}
             >
-              <Icon size={16} />
+              <Icon size={16} aria-hidden="true" />
               {label}
             </button>
           ))}
@@ -192,7 +290,7 @@ const Profile = () => {
           (Array.isArray(orders) && orders.length ? (
             <div>
               {orders.map((item, i) => (
-                <OrderItem key={i} item={item} onTapViewMore={() => {}} />
+                <OrderItem key={i} item={item} onTapViewMore={() => { }} />
               ))}
             </div>
           ) : (

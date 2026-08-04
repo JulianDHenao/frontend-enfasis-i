@@ -37,9 +37,8 @@ const Vehicles = () => {
       <div className="px-5 sm:px-8 lg:px-10 flex flex-wrap gap-2 mb-8">
         <button
           onClick={() => setActiveCategory("all")}
-          className={`px-4 py-2 rounded-full text-sm transition-colors ${
-            activeCategory === "all" ? "bg-black text-white" : "bg-white text-black"
-          }`}
+          className={`px-4 py-2 rounded-full text-sm transition-colors ${activeCategory === "all" ? "bg-black text-white" : "bg-white text-black"
+            }`}
           style={inter}
         >
           Todos
@@ -48,9 +47,8 @@ const Vehicles = () => {
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
-            className={`px-4 py-2 rounded-full text-sm capitalize transition-colors ${
-              activeCategory === cat ? "bg-black text-white" : "bg-white text-black"
-            }`}
+            className={`px-4 py-2 rounded-full text-sm capitalize transition-colors ${activeCategory === cat ? "bg-black text-white" : "bg-white text-black"
+              }`}
             style={inter}
           >
             {cat}

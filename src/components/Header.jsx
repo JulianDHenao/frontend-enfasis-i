@@ -17,7 +17,7 @@ export const Header = () => {
         className="text-white text-xl"
         style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 500, letterSpacing: "-0.05em" }}
       >
-        AutosEnfasisI
+        AutosEnfasis-I
       </Link>
 
       <div className="flex items-center gap-6">
