@@ -10,6 +10,21 @@ const setHeader = () => {
     }
 }
 
+// The API only answers 401 from the auth middleware (a missing, invalid or
+// expired token). Failed credentials on /customer/login come back as 400, so
+// this never fires while someone is trying to sign in.
+export const registerUnauthorizedHandler = (onUnauthorized) => {
+  api.interceptors.response.use(
+    (response) => response,
+    (err) => {
+      if (err?.response?.status === 401) {
+        onUnauthorized();
+      }
+      return Promise.reject(err);
+    }
+  );
+};
+
 export const GetData = async(endPoint,options) => {
   try {
     setHeader();
