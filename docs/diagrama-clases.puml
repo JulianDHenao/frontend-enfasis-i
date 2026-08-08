@@ -1,0 +1,195 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+hide empty members
+
+title Diagrama de clases del proyecto
+
+package "App y layout" {
+  class App <<component>> {
+    +render()
+  }
+
+  class WithHeader <<component>> {
+    +render()
+  }
+
+  class Providers <<component>> {
+    +render(children)
+  }
+}
+
+package "Paginas" {
+  class Home <<page>> {
+    +render()
+  }
+
+  class Vehicles <<page>> {
+    +render()
+  }
+
+  class Login <<page>> {
+    +render()
+  }
+
+  class Profile <<page>> {
+    +render()
+  }
+
+  class ProductDetails <<page>> {
+    +render()
+  }
+}
+
+package "Componentes" {
+  class Header <<component>> {
+    +render()
+  }
+
+  class ProductCard <<component>> {
+    +render(item)
+  }
+
+  class CartItem <<component>> {
+    +render(item, cart, onAdd, onRemove)
+    +addCart()
+    +removeCart()
+  }
+
+  class WishItem <<component>> {
+    +render(item, onTapRemove)
+  }
+
+  class OrderItem <<component>> {
+    +render(item, onTapViewMore)
+  }
+
+  class AddressComponent <<component>> {
+    +render(address)
+  }
+}
+
+package "Store" {
+  class Store <<redux-store>> {
+    +reducer
+    +dispatch
+  }
+
+  class userSlice <<slice>> {
+    +authStarted()
+    +authFailed()
+    +authErrorCleared()
+    +userLogin()
+    +userSignup()
+    +userLogout()
+    +userProfile()
+    +addNewAddress()
+    +addToWishlist()
+    +removeFromWishlist()
+    +addToCart()
+    +removeFromCart()
+    +placeOrder()
+  }
+
+  class shoppingSlice <<slice>> {
+    +landingProducts()
+    +productDetails()
+  }
+
+  class hooks <<module>> {
+    +useAppDispatch()
+    +useAppSelector()
+  }
+
+  class userActions <<thunk-module>> {
+    +onSignup()
+    +onLogin()
+    +onLogout()
+    +onViewProfile()
+    +onClearAuthError()
+    +SetAuthToken()
+  }
+
+  class shoppingActions <<thunk-module>> {
+    +onGetProducts()
+    +onGetProductDetails()
+    +onAddToWishlist()
+    +onRemoveFromWishlist()
+    +onAddToCart()
+    +onRemoveFromCart()
+    +onCreateAddress()
+    +onPlaceOrder()
+  }
+}
+
+package "Utilidades" {
+  class ApiClient <<service>> {
+    +GetData()
+    +PostData()
+    +PutData()
+    +DeleteData()
+    +registerUnauthorizedHandler()
+  }
+}
+
+class BrowserRouter <<external>>
+class Routes <<external>>
+class Route <<external>>
+class Outlet <<external>>
+class Provider <<external>>
+class Link <<external>>
+class axios <<external>>
+
+App --> BrowserRouter
+App --> Routes
+Routes --> Route
+WithHeader --> Header
+WithHeader --> Outlet
+Providers --> Provider
+Providers --> Store
+
+Home --> Link
+Vehicles --> ProductCard
+Login --> Profile
+Profile --> AddressComponent
+Profile --> CartItem
+Profile --> WishItem
+Profile --> OrderItem
+ProductDetails --> hooks
+ProductDetails --> userActions
+ProductDetails --> shoppingActions
+Vehicles --> hooks
+Vehicles --> shoppingActions
+Login --> hooks
+Login --> userActions
+Profile --> hooks
+Profile --> userActions
+
+Store --> userSlice
+Store --> shoppingSlice
+Store --> userActions
+
+userActions --> ApiClient
+shoppingActions --> ApiClient
+
+ApiClient --> axios
+
+note right of userSlice
+  Estado principal:
+  user, profile, wishlist, cart,
+  orders, address, authPending,
+  authError
+end note
+
+note right of shoppingSlice
+  Estado principal:
+  products, categories,
+  currentProduct
+end note
+
+note bottom of ApiClient
+  Capa HTTP basada en axios con
+  bearer token y manejador de 401.
+end note
+
+@enduml
