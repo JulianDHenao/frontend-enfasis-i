@@ -38,6 +38,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const [signupName, setSignupName] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [signupPhone, setSignupPhone] = useState("");
@@ -46,6 +47,7 @@ const Login = () => {
     event.preventDefault();
     dispatch(
       onSignup({
+        name: signupName, // <-- Agregamos el nombre aquí
         email: signupEmail,
         password: signupPassword,
         phone: signupPhone,
@@ -135,8 +137,31 @@ const Login = () => {
     </form>
   );
 
-  const signUpForm = (
+ const signUpForm = (
     <form className="flex flex-col gap-4" style={inter} onSubmit={userSignup}>
+      
+      {/* 1. CAMPO DE NOMBRE COMPLETO */}
+      <div>
+        <label htmlFor="signup-name" className="block text-sm mb-1.5 text-black/70">
+          Nombre completo
+        </label>
+        <input
+          id="signup-name"
+          className={inputClass}
+          type="text"
+          required
+          autoComplete="name"
+          placeholder="Ej: Ana Pérez"
+          value={signupName}
+          {...invalidProps}
+          onChange={(e) => {
+            setSignupName(e.target.value);
+            clearErrorOnEdit();
+          }}
+        />
+      </div>
+
+      {/* 2. CAMPO DE CORREO ELECTRÓNICO */}
       <div>
         <label htmlFor="signup-email" className="block text-sm mb-1.5 text-black/70">
           Correo electrónico
@@ -156,6 +181,8 @@ const Login = () => {
           }}
         />
       </div>
+
+      {/* 3. CAMPO DE CONTRASEÑA */}
       <div>
         <label htmlFor="signup-password" className="block text-sm mb-1.5 text-black/70">
           Contraseña
@@ -175,6 +202,8 @@ const Login = () => {
           }}
         />
       </div>
+
+      {/* 4. CAMPO DE TELÉFONO */}
       <div>
         <label htmlFor="signup-phone" className="block text-sm mb-1.5 text-black/70">
           Teléfono
@@ -193,6 +222,7 @@ const Login = () => {
           }}
         />
       </div>
+
       <button {...submitProps}>
         {authPending ? "Creando cuenta…" : "Crear cuenta"}
       </button>

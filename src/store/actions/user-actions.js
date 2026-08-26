@@ -42,11 +42,12 @@ export const SetAuthToken = async (token) => {
 };
 
 export const onSignup =
-  ({ email, password, phone }) =>
+  ({ name, email, password, phone }) => // 1. Agregamos 'name' aquí arriba
   async (dispatch) => {
     try {
       dispatch(authStarted());
       const response = await PostData("/customer/signup", {
+        name, // 2. Y lo agregamos al objeto que se envía al servidor
         email,
         password,
         phone,
@@ -58,7 +59,6 @@ export const onSignup =
       return dispatch(authFailed(describeAuthError(err)));
     }
   };
-
 export const onLogin =
   ({ email, password }) =>
   async (dispatch) => {

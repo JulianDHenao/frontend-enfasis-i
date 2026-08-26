@@ -114,12 +114,25 @@ export const onGetProducts = (payload) => async(dispatch) => {
   };
 
 
-  export const onCreateAddress = ({street, postalCode,city,country }) => async(dispatch) => {
-
+ export const onCreateAddress = ({ street, postalCode, city, state, country }) => async (dispatch, getState) => {
     try {
+        const { user } = getState().userReducer;
+        
+        // ¡Aquí está la magia! Buscamos el ID dentro de user.customer
+        const userId = user.customer?._id || user.customer?.id; 
 
-        const response = await PostData('/customer/address/', {
-          street, postalCode,city,country
+        if (!userId) {
+            console.error("No se encontró el ID en user.customer:", user);
+            alert("No se pudo obtener el ID del usuario.");
+            return;
+        }
+
+        const response = await PostData(`/customer/${userId}/address`, {
+          street, 
+          postalCode,
+          city,
+          state, 
+          country
         });
 
         dispatch(addNewAddress(response.data));
@@ -127,7 +140,6 @@ export const onGetProducts = (payload) => async(dispatch) => {
     } catch (err) {
       console.log(err)
     }
-
   };
 
 
