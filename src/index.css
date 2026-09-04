@@ -3,8 +3,22 @@
 
 body {
   margin: 0;
+  background: #f5f5f3;
+  color: #101411;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: #d4f26a;
+  color: #101411;
+}
+
+button,
+a,
+input,
+select {
+  -webkit-tap-highlight-color: transparent;
 }
 
 code {
