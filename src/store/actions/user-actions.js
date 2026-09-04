@@ -87,9 +87,26 @@ export const onLogout = () => async (dispatch) => {
 
 export const onViewProfile = () => async (dispatch) => {
   try {
-    const response = await GetData("/customer/profile");
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    const customerId = JSON.parse(atob(token.split('.')[1])).id;
+    const [profileResponse, cartResponse, ordersResponse] = await Promise.all([
+      GetData(`/customer/${customerId}`),
+      GetData(`/shopping/cart/${customerId}`),
+      GetData(`/shopping/orders/${customerId}`),
+    ]);
 
-    return dispatch(userProfile(response.data));
+    const profile = profileResponse.data;
+    return dispatch(userProfile({
+      ...profile,
+      address: profile.addresses || [],
+      wishlist: (profile.wishlist || []).map((id) => ({ _id: id })),
+      cart: (cartResponse.data.items || []).map((item) => ({
+        unit: item.quantity,
+        product: { _id: item.productId, name: item.name, price: item.price, desc: '' },
+      })),
+      orders: ordersResponse.data,
+    }));
   } catch (err) {
     console.log(err);
   }

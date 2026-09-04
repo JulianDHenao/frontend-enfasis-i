@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Heart, Minus, Plus, ShoppingCart } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
@@ -22,51 +22,32 @@ const ProductDetails = () => {
   const { currentProduct } = useAppSelector((state) => state.shoppingReducer);
   const { wishlist, cart } = useAppSelector((state) => state.userReducer);
 
-  const [currentUnit, setCurrentUnit] = useState(0);
+  const cartEntry =
+    Array.isArray(cart) && cart.find(({ product }) => product?._id === id);
+  const currentUnit = cartEntry?.unit || 0;
 
   const { _id, banner, price, name, desc, type } = currentProduct;
 
   useEffect(() => {
     dispatch(onGetProductDetails(id));
-  }, [id]);
-
-  useEffect(() => {
-    if (Array.isArray(cart) && cart.length) {
-      const exist = cart.filter(({ product }) => product._id == _id);
-      if (exist.length) {
-        setCurrentUnit(exist[0].unit);
-      }
-    }
-  }, [currentProduct]);
+  }, [dispatch, id]);
 
   const addCart = () => {
     const newUnit = currentUnit + 1;
 
-    setCurrentUnit(newUnit);
-    setTimeout(() => {
-      dispatch(onAddToCart({ _id, qty: newUnit }));
-    }, 0);
+    dispatch(onAddToCart({ _id, qty: newUnit }));
   };
 
   const removeCart = () => {
     if (currentUnit > 0) {
       const newUnit = currentUnit - 1;
-      setCurrentUnit(newUnit);
-      setTimeout(() => {
-        if (newUnit > 0) {
-          dispatch(onAddToCart({ _id, qty: newUnit }));
-        } else {
-          dispatch(onRemoveFromCart(_id));
-        }
-      }, 0);
+      if (newUnit > 0) dispatch(onAddToCart({ _id, qty: newUnit }));
+      else dispatch(onRemoveFromCart(_id));
     }
   };
 
   const isWishlisted =
     Array.isArray(wishlist) && wishlist.some((item) => item._id == _id);
-  const cartEntry =
-    Array.isArray(cart) && cart.find(({ product }) => product._id == _id);
-
   if (!currentProduct) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={inter}>

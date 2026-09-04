@@ -1,4 +1,3 @@
-import React, { useState, useEffect } from "react";
 import { Minus, Plus } from "lucide-react";
 
 const inter = { fontFamily: "'Inter', sans-serif" };
@@ -6,36 +5,19 @@ const inter = { fontFamily: "'Inter', sans-serif" };
 export const CartItem = ({ item, cart, onAdd, onRemove }) => {
   const { _id } = item?.product || {};
 
-  const [currentUnit, setCurrentUnit] = useState(0);
-
-  useEffect(() => {
-    if (Array.isArray(cart) && cart.length && item) {
-      const exist = cart.filter(({ product }) => product._id == _id);
-      if (exist.length) {
-        setCurrentUnit(exist[0].unit);
-      }
-    }
-  }, [cart]);
+  const currentUnit =
+    Array.isArray(cart) ? cart.find(({ product }) => product?._id === _id)?.unit || 0 : 0;
 
   const addCart = () => {
     const newUnit = currentUnit + 1;
-    setCurrentUnit(newUnit);
-    setTimeout(() => {
-      onAdd({ _id, qty: newUnit });
-    }, 0);
+    onAdd({ _id, qty: newUnit });
   };
 
   const removeCart = () => {
     if (!item) return;
     const newUnit = currentUnit - 1;
-    setCurrentUnit(newUnit);
-    setTimeout(() => {
-      if (newUnit > 0) {
-        onAdd({ _id, qty: newUnit });
-      } else {
-        onRemove({ _id });
-      }
-    }, 0);
+    if (newUnit > 0) onAdd({ _id, qty: newUnit });
+    else onRemove({ _id });
   };
 
   if (!item || !item.product) {

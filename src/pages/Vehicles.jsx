@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ProductCard } from "../components/ProductCard";
 import { onGetProducts } from "../store/actions";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
@@ -13,7 +13,7 @@ const Vehicles = () => {
 
   useEffect(() => {
     dispatch(onGetProducts());
-  }, []);
+  }, [dispatch]);
 
   const filteredProducts =
     activeCategory === "all"
@@ -22,22 +22,22 @@ const Vehicles = () => {
 
   return (
     <div className="min-h-screen bg-[#F5F5F3]">
-      <div className="px-5 sm:px-8 lg:px-10 pt-10 pb-6">
+      <div className="px-5 sm:px-8 lg:px-10 pt-10 pb-6 bg-[#101411] text-white">
         <h1
-          className="text-4xl sm:text-5xl lg:text-6xl text-black"
+          className="text-4xl sm:text-5xl lg:text-6xl text-white"
           style={{ ...dmSans, fontWeight: 400, letterSpacing: "-0.05em" }}
         >
           Nuestros Vehículos
         </h1>
-        <p className="text-black/60 mt-2 text-base sm:text-lg" style={inter}>
+        <p className="text-white/65 mt-2 text-base sm:text-lg" style={inter}>
           Encuentra el vehículo ideal para ti.
         </p>
       </div>
 
-      <div className="px-5 sm:px-8 lg:px-10 flex flex-wrap gap-2 mb-8">
+      <div className="px-5 sm:px-8 lg:px-10 flex flex-wrap gap-2 mb-8 pt-6">
         <button
           onClick={() => setActiveCategory("all")}
-          className={`px-4 py-2 rounded-full text-sm transition-colors ${activeCategory === "all" ? "bg-black text-white" : "bg-white text-black"
+            className={`px-4 py-2 rounded-full text-sm transition-colors border border-black/10 ${activeCategory === "all" ? "bg-[#D4F26A] text-black" : "bg-white text-black"
             }`}
           style={inter}
         >
@@ -47,7 +47,7 @@ const Vehicles = () => {
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
-            className={`px-4 py-2 rounded-full text-sm capitalize transition-colors ${activeCategory === cat ? "bg-black text-white" : "bg-white text-black"
+            className={`px-4 py-2 rounded-full text-sm capitalize transition-colors border border-black/10 ${activeCategory === cat ? "bg-[#D4F26A] text-black" : "bg-white text-black"
               }`}
             style={inter}
           >

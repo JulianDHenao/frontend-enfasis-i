@@ -1,4 +1,3 @@
-import React from "react";
 import { Trash2, Pencil } from "lucide-react";
 
 const inter = { fontFamily: "'Inter', sans-serif" };

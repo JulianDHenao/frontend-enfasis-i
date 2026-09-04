@@ -69,7 +69,7 @@ const Profile = () => {
     if (token) {
       dispatch(onViewProfile());
     }
-  }, [token]);
+  }, [dispatch, token]);
 
   const onAdd = ({ _id, qty }) => {
     dispatch(onAddToCart({ _id, qty }));
@@ -88,7 +88,7 @@ const Profile = () => {
   };
 
   const addNewAddress = () => {
-    dispatch(onCreateAddress({ street, postalCode, city, country }));
+    dispatch(onCreateAddress({ street, postalCode, city, state, country }));
   };
 
   const emptyState = (message) => (

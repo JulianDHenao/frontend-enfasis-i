@@ -1,4 +1,4 @@
-import { DeleteData, GetData, PostData, PutData } from '../../utils'
+import { DeleteData, GetData, PostData } from '../../utils'
 import { landingProducts, productDetails } from '../shpping-slice'
 import {
   addToWishlist,
@@ -9,8 +9,18 @@ import {
   placeOrder,
 } from '../user-slice'
 
+const getCustomerId = (_dispatch, getState) => {
+  const { user } = getState().userReducer;
+  return user.customer?._id || user.customer?.id;
+};
 
-export const onGetProducts = (payload) => async(dispatch) => {
+const normalizeCart = (cart) => (cart?.items || []).map((item) => ({
+  unit: item.quantity,
+  product: { _id: item.productId, name: item.name, price: item.price, desc: '' },
+}));
+
+
+export const onGetProducts = () => async(dispatch) => {
 
     try {
 
@@ -43,16 +53,14 @@ export const onGetProducts = (payload) => async(dispatch) => {
 
   /* ------------------- Wishlist --------------------- */
 
-  export const onAddToWishlist = (_id) => async(dispatch) => {
+  export const onAddToWishlist = (_id) => async(dispatch, getState) => {
 
 
     try {
 
-        const response = await PutData('/wishlist', {
-          _id
-        });
+        const response = await PostData(`/customer/${getCustomerId(dispatch, getState)}/wishlist`, { productId: _id });
 
-        dispatch(addToWishlist(response.data));
+        dispatch(addToWishlist(response.data.map((id) => ({ _id: id }))));
 
 
     } catch (err) {
@@ -62,13 +70,13 @@ export const onGetProducts = (payload) => async(dispatch) => {
   };
 
 
-  export const onRemoveFromWishlist = (_id) => async(dispatch) => {
+  export const onRemoveFromWishlist = (_id) => async(dispatch, getState) => {
 
     try {
 
-        const response = await DeleteData('/wishlist/'+_id);
+        const response = await DeleteData(`/customer/${getCustomerId(dispatch, getState)}/wishlist/${_id}`);
 
-        dispatch(removeFromWishlist(response.data));
+        dispatch(removeFromWishlist(response.data.map((id) => ({ _id: id }))));
 
     } catch (err) {
       console.log(err)
@@ -80,16 +88,22 @@ export const onGetProducts = (payload) => async(dispatch) => {
 
   /* ------------------- Cart --------------------- */
 
-  export const onAddToCart = ({ _id, qty }) => async(dispatch) => {
+  export const onAddToCart = ({ _id, qty }) => async(dispatch, getState) => {
 
     try {
 
-        const response = await PutData('/cart', {
-          _id,
-          qty
+        const product = getState().shoppingReducer.products.find((item) => item._id === _id)
+          || getState().shoppingReducer.currentProduct;
+        const customerId = getCustomerId(dispatch, getState);
+        const response = await PostData('/shopping/cart', {
+          customerId,
+          productId: _id,
+          name: product.name,
+          price: product.price,
+          quantity: qty,
         });
 
-        dispatch(addToCart(response.data));
+        dispatch(addToCart(normalizeCart(response.data)));
 
 
     } catch (err) {
@@ -99,13 +113,14 @@ export const onGetProducts = (payload) => async(dispatch) => {
   };
 
 
-  export const onRemoveFromCart = (_id) => async(dispatch) => {
+  export const onRemoveFromCart = (_id) => async(dispatch, getState) => {
 
     try {
 
-        const response = await DeleteData('/cart/'+_id);
+        const customerId = getCustomerId(dispatch, getState);
+        const response = await DeleteData(`/shopping/cart/${customerId}/items/${_id}`);
 
-        dispatch(removeFromCart(response.data));
+        dispatch(removeFromCart(normalizeCart(response.data)));
 
     } catch (err) {
       console.log(err)

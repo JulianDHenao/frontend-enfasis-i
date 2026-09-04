@@ -1,4 +1,3 @@
-import React from "react";
 import { Eye } from "lucide-react";
 
 const inter = { fontFamily: "'Inter', sans-serif" };

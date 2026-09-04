@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 
 const ProductCard = ({ item }) => {
@@ -7,7 +6,7 @@ const ProductCard = ({ item }) => {
   return (
     <Link
       to={"/details/" + _id}
-      className="group flex flex-col bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-shadow"
+      className="group flex flex-col bg-white border border-black/10 overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-300"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-black/5">
         <img
@@ -23,12 +22,12 @@ const ProductCard = ({ item }) => {
       </div>
       <div className="flex flex-col gap-1 p-4">
         <p
-          className="text-lg text-black"
+          className="text-lg text-black font-medium"
           style={{ fontFamily: "'DM Sans', sans-serif", letterSpacing: "-0.03em" }}
         >
           {name}
         </p>
-        <span className="text-sm text-black/60" style={{ fontFamily: "'Inter', sans-serif" }}>
+        <span className="text-sm text-black/60 line-clamp-2" style={{ fontFamily: "'Inter', sans-serif" }}>
           {desc}
         </span>
         <p
